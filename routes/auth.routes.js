@@ -7,7 +7,15 @@ let users = [];
  * REGISTER
  */
 router.post("/register", (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, avatar } = req.body;
+
+  console.log('📝 Registration attempt:', { name, email, hasAvatar: !!avatar });
+
+  // Validate required fields
+  if (!name || !email || !password) {
+    console.log('❌ Missing required fields');
+    return res.status(400).json({ message: "Name, email and password are required" });
+  }
 
   // Validate avatar format if exists
   if (
@@ -15,6 +23,7 @@ router.post("/register", (req, res) => {
     typeof avatar === "string" &&
     !avatar.startsWith("data:image/")
   ) {
+    console.log('❌ Invalid avatar format');
     return res.status(400).json({
       message: "Invalid avatar format. Must be base64 data URL.",
     });
@@ -30,7 +39,8 @@ router.post("/register", (req, res) => {
     id: Date.now(),
     name,
     email,
-    password // ⚠️ plain text (OK for learning)
+    password, // ⚠️ plain text (OK for learning)
+    avatar: avatar || null
   };
 
   users.push(newUser);
@@ -43,7 +53,8 @@ router.post("/register", (req, res) => {
     user: {
       id: newUser.id,
       name: newUser.name,
-      email: newUser.email
+      email: newUser.email,
+      avatar: newUser.avatar
     }
   });
 });
@@ -56,6 +67,12 @@ router.post("/login", (req, res) => {
 
   console.log('🔐 Login attempt:', email);
   console.log('👥 Available users:', users.length);
+
+  // Validate required fields
+  if (!email || !password) {
+    console.log('❌ Missing credentials');
+    return res.status(400).json({ message: "Email and password are required" });
+  }
 
   const user = users.find(
     (u) => u.email === email && u.password === password
@@ -73,7 +90,8 @@ router.post("/login", (req, res) => {
     user: {
       id: user.id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      avatar: user.avatar || null
     }
   });
 });
