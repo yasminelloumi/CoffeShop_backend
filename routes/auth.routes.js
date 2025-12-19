@@ -1,17 +1,26 @@
 const express = require("express");
 const router = express.Router();
-let users = require("../data/users");
+
+let users = [];
 
 /**
  * REGISTER
  */
 router.post("/register", (req, res) => {
-  const { name, email, password, avatar } = req.body;
+  const { name, email, password } = req.body;
 
-  console.log('📝 Registration attempt:', { name, email, hasAvatar: !!avatar });
+  // Validate avatar format if exists
+  if (
+    avatar &&
+    typeof avatar === "string" &&
+    !avatar.startsWith("data:image/")
+  ) {
+    return res.status(400).json({
+      message: "Invalid avatar format. Must be base64 data URL.",
+    });
+  }
 
-  // Check if user exists
-  const userExists = users.find(u => u.email === email);
+  const userExists = users.find((u) => u.email === email);
   if (userExists) {
     console.log('❌ User already exists:', email);
     return res.status(400).json({ message: "User already exists" });
@@ -21,8 +30,7 @@ router.post("/register", (req, res) => {
     id: Date.now(),
     name,
     email,
-    password, // ⚠️ plain text (OK for learning)
-    avatar: avatar || null
+    password // ⚠️ plain text (OK for learning)
   };
 
   users.push(newUser);
@@ -35,8 +43,7 @@ router.post("/register", (req, res) => {
     user: {
       id: newUser.id,
       name: newUser.name,
-      email: newUser.email,
-      avatar: newUser.avatar
+      email: newUser.email
     }
   });
 });
@@ -51,7 +58,7 @@ router.post("/login", (req, res) => {
   console.log('👥 Available users:', users.length);
 
   const user = users.find(
-    u => u.email === email && u.password === password
+    (u) => u.email === email && u.password === password
   );
 
   if (!user) {
@@ -66,8 +73,7 @@ router.post("/login", (req, res) => {
     user: {
       id: user.id,
       name: user.name,
-      email: user.email,
-      avatar: user.avatar
+      email: user.email
     }
   });
 });
